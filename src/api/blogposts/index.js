@@ -10,6 +10,7 @@
 
 */
 
+
 import express from "express"
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
@@ -48,6 +49,8 @@ postsRouter.post("/blogposts", checksPostsSchema, triggerBadRequest, (req, res, 
   }
 })
 
+
+
 postsRouter.post("/blogPosts/:id/comments", checksPostsSchema, triggerBadRequest, (req, res, next) => {
   try {
     const newPost = { ...req.body.comments, updatedAt: new Date() }
@@ -60,7 +63,7 @@ postsRouter.post("/blogPosts/:id/comments", checksPostsSchema, triggerBadRequest
 
     res.status(201).send({ id: newPost.id })
   } catch (error) {
-    next(error) // with the next(error) I can send this error to the error handlers
+    next(error) 
   }
 })
 
