@@ -48,6 +48,24 @@ postsRouter.post("/blogposts", checksPostsSchema, triggerBadRequest, (req, res, 
   }
 })
 
+postsRouter.post("/blogPosts/:id/comments", checksPostsSchema, triggerBadRequest, (req, res, next) => {
+  try {
+    const newPost = { ...req.body.comments, updatedAt: new Date() }
+
+    const postsArray = getPosts()
+
+    postsArray.push(newPost)
+
+    writePosts(postsArray)
+
+    res.status(201).send({ id: newPost.id })
+  } catch (error) {
+    next(error) // with the next(error) I can send this error to the error handlers
+  }
+})
+
+
+
 postsRouter.get("/blogPosts", anotherStupidMiddleware, (req, res, next) => {
   try {
     // throw new Error("KABOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM")
@@ -62,6 +80,23 @@ postsRouter.get("/blogPosts", anotherStupidMiddleware, (req, res, next) => {
     next(error)
   }
 })
+
+postsRouter.get("/blogPosts/:id/comments", anotherStupidMiddleware, (req, res, next) => {
+    try {
+        const posts = getPosts()
+        const post = posts.find(post => post.id.comments === req.params.postId)
+        if (post) {
+          res.send(post.comments)
+        } else {
+          // next(createHttpError(404, `Book with id ${req.params.bookId} not found!`))
+          next(NotFound(`Post with id ${req.params.postId} not found!`)) // --> err object {status: 404, message: `Book with id ${req.params.bookId} not found!` }
+          // next(BadRequest("message")) // --> err object {status: 400, message: `message` }
+          // next(Unauthorized("message")) // --> err object {status: 401, message: `message`}
+        }
+      } catch (error) {
+        next(error)
+      }
+    })
 
 postsRouter.get("/blogPosts/:postId", (req, res, next) => {
   try {
