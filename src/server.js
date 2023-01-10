@@ -2,6 +2,8 @@
 import express from "express" // NEW IMPORT SYNTAX (do not forget to add type: "module" to package.json to use this!!)
 import listEndpoints from "express-list-endpoints"
 import cors from "cors"
+import { join } from "path"
+import createHttpError from "http-errors"
 import postsRouter from "./api/blogposts/index.js"
 import {
     genericErrorHandler,
@@ -12,7 +14,11 @@ import {
 
 const server = express()
 
-const port = 3001
+const publicFolderPath = join(process.cwd(), "./public")
+
+
+FE="http://localhost:3000"
+BE="http://localhost:3001"
 
 // ***************** MIDDLEWARES ********************
 
@@ -31,8 +37,27 @@ const loggerMiddleware = (req, res, next) => {
     next()
   }
 } */
+const port = process.env.PORT
 
-server.use(cors()) // Just to let FE communicate with BE successfully
+
+const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL]
+
+const corsOpts = {
+  origin: (origin, corsNext) => {
+    console.log("CURRENT ORIGIN: ", origin)
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      // If current origin is in the whitelist you can move on
+      corsNext(null, true)
+    } else {
+      // If it is not --> error
+      corsNext(createHttpError(400, `Origin ${origin} is not in the whitelist!`))
+    }
+  },
+}
+
+server.use(express.static(publicFolderPath))
+
+server.use(cors(corsOpts)) // Just to let FE communicate with BE successfully
 server.use(loggerMiddleware)
 /* server.use(policeOfficerMiddleware) */
 server.use(express.json()) // If you do not add this line here BEFORE the endpoints, all req.body will be UNDEFINED
@@ -41,10 +66,10 @@ server.use(express.json()) // If you do not add this line here BEFORE the endpoi
 server.use("/", loggerMiddleware, postsRouter) // All users related endpoints will share the same /users prefix in their urls
 
 // ****************** ERROR HANDLERS ****************
-// server.use(badRequestHandler) // 400
-// server.use(unauthorizedHandler) // 401
-// server.use(notFoundHandler) // 404
-// // server.use(genericErrorHandler) // 500
+ server.use(badRequestHandler) // 400
+ server.use(unauthorizedHandler) // 401
+ server.use(notFoundHandler) // 404
+ server.use(genericErrorHandler) // 500
 // (the order of these error handlers does not really matters, expect for genericErrorHandler which needs to be the last in chain)
 
 server.listen(port, () => {
