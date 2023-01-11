@@ -56,7 +56,7 @@ const loggerMiddleware = (req, res, next) => {
 
 // server.use(express.static(publicFolderPath))
 
-// server.use(cors(corsOpts)) // Just to let FE communicate with BE successfully
+ server.use(cors()) // Just to let FE communicate with BE successfully
 server.use(loggerMiddleware)
 /* server.use(policeOfficerMiddleware) */
 server.use(express.json()) // If you do not add this line here BEFORE the endpoints, all req.body will be UNDEFINED
