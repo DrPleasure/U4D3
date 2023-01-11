@@ -17,8 +17,7 @@ const server = express()
 const publicFolderPath = join(process.cwd(), "./public")
 
 
-FE="http://localhost:3000"
-BE="http://localhost:3001"
+const port = process.env.PORT
 
 // ***************** MIDDLEWARES ********************
 
@@ -37,27 +36,27 @@ const loggerMiddleware = (req, res, next) => {
     next()
   }
 } */
-const port = process.env.PORT
 
 
-const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL]
 
-const corsOpts = {
-  origin: (origin, corsNext) => {
-    console.log("CURRENT ORIGIN: ", origin)
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      // If current origin is in the whitelist you can move on
-      corsNext(null, true)
-    } else {
-      // If it is not --> error
-      corsNext(createHttpError(400, `Origin ${origin} is not in the whitelist!`))
-    }
-  },
-}
+// const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL]
 
-server.use(express.static(publicFolderPath))
+// const corsOpts = {
+//   origin: (origin, corsNext) => {
+//     console.log("CURRENT ORIGIN: ", origin)
+//     if (!origin || whitelist.indexOf(origin) !== -1) {
+//       // If current origin is in the whitelist you can move on
+//       corsNext(null, true)
+//     } else {
+//       // If it is not --> error
+//       corsNext(createHttpError(400, `Origin ${origin} is not in the whitelist!`))
+//     }
+//   },
+// }
 
-server.use(cors(corsOpts)) // Just to let FE communicate with BE successfully
+// server.use(express.static(publicFolderPath))
+
+// server.use(cors(corsOpts)) // Just to let FE communicate with BE successfully
 server.use(loggerMiddleware)
 /* server.use(policeOfficerMiddleware) */
 server.use(express.json()) // If you do not add this line here BEFORE the endpoints, all req.body will be UNDEFINED
@@ -74,5 +73,5 @@ server.use("/", loggerMiddleware, postsRouter) // All users related endpoints wi
 
 server.listen(port, () => {
   console.table(listEndpoints(server))
-  console.log("Server is running on port:", port)
+  console.log("Server is running on port:",process.env.PORT)
 })

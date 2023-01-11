@@ -18,8 +18,13 @@ import uniqid from "uniqid"
 import fs from "fs"
 import httpErrors from "http-errors"
 import { checksPostsSchema, triggerBadRequest } from "./validator.js"
+import { pipeline } from "stream"
+import { createGzip } from "zlib"
+import { getPDFReadableStream } from "../../pdf-tools.js"
+
 
 const { NotFound, Unauthorized, BadRequest } = httpErrors
+const { readJSON, writeJSON, writeFile, createReadStream } = fs
 
 const postsRouter = express.Router()
 
@@ -32,6 +37,74 @@ const anotherStupidMiddleware = (req, res, next) => {
 
 const getPosts = () => JSON.parse(fs.readFileSync(postsJSONPath))
 const writePosts = postsArray => fs.writeFileSync(postsJSONPath, JSON.stringify(postsArray))
+
+
+
+// DOWNLOAD PDF FILE
+
+postsRouter.get("/pdf", (req, res, next) => {
+  res.setHeader("Content-Disposition", "attachment; filename=ThatsSomeArticle.pdf")
+
+  const source = getPDFReadableStream([
+    {
+      "category": 1,
+      "title": "yes",
+      "cover": "https://media.timeout.com/images/105733042/750/422/image.jpg",
+      "readTime": { "value": 2, "unit": "minute" },
+      "author": {
+        "name": "Daniel Rudolph Earpz",
+        "avatar": "https://img.pixers.pics/pho_wat(s3:700/FO/44/93/03/31/700_FO44930331_485272939904df977ef92a30c555c7a4.jpg,700,700,cms:2018/10/5bd1b6b8d04b8_220x50-watermark.png,over,480,650,jpg)/kropspude-rudolph-rensdyr-rod-nase-og-hat.jpg.jpg"
+      },
+      "content": "HTML",
+      "createdAt": "2022-12-21T15:08:36.228Z",
+      "id": "1hv47u229ulbxsi8zo",
+      "updatedAt": "2022-12-22T13:47:50.129Z",
+      "comments": ["Yes very goood stuff", "Insane dog"]
+    },
+    {
+      "category": "Horrible Stuff",
+      "title": "Dildo delivery stalls highway traffic",
+      "cover": "https://asset.dr.dk/imagescaler01/https%3A%2F%2Fwww.dr.dk%2Fimages%2Fother%2F2014%2F12%2F03%2Ffe96ca27-9bc1-4b66-a76c-3e45d6c75582_ssp_vinge_motorvej.jpg&w=620",
+      "readTime": { "value": 2, "unit": "minute" },
+      "author": {
+        "name": "Doctor. Rock Johnson",
+        "avatar": "https://upload.wikimedia.org/wikipedia/commons/6/68/Dwayne_Johnson_at_the_2009_Tribeca_Film_Festival.jpg"
+      },
+      "content": "HTML",
+      "createdAt": "2022-12-21T15:13:15.400Z",
+      "id": "1hv47u229ulbxso8eg"
+    },
+  ])
+  const destination = res
+  pipeline(source, destination, err => {
+    if (err) console.log(err)
+  })
+})
+
+// GET BLOGPOSTS STREAM ENDPOINT
+
+const getBlogpostsJsonReadableStream = () => createReadStream(postsJSONPath)
+
+postsRouter.get("/blogpostsJSON", (req, res, next) => {
+  try {
+    // SOURCES (file on disk, http request, ...) --> DESTINATION (file on disk, terminal, http response, ...)
+
+    // SOURCE (READABLE STREAM on books.json file) --> DESTINATION (WRITABLE STREAM http response)
+
+    res.setHeader("Content-Disposition", "attachment; filename=blogposts.json")
+    // without this header the browser will try to open (not save) the file.
+    // This header will tell the browser to open the "save file as" dialog
+    const source = getBlogpostsJsonReadableStream()
+    const transform = createGzip()
+    const destination = res
+    pipeline(source, transform, destination, err => {
+      if (err) console.log(err)
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 
 postsRouter.post("/blogposts", checksPostsSchema, triggerBadRequest, (req, res, next) => {
   try {
