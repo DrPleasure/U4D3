@@ -12,12 +12,12 @@ export const getPDFReadableStream = postsArray => {
 
   console.log(
     postsArray.map(posts => {
-      return [posts.title, posts.category, posts.author.name, posts.article]
+      return [posts.title, posts.category, posts.author.name, posts.article, posts.image]
     })
   )
 
   const docDefinition = {
-    content: [postsArray[0].title, postsArray[0].author.name, postsArray[0].category, postsArray[0].article],
+    content: [postsArray[0].title, postsArray[0].author.name, postsArray[0].category, postsArray[0].image, postsArray[0].article, ]
   }
 
   const pdfReadableStream = printer.createPdfKitDocument(docDefinition)

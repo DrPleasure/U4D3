@@ -21,7 +21,7 @@ import { checksPostsSchema, triggerBadRequest } from "./validator.js"
 import { pipeline } from "stream"
 import { createGzip } from "zlib"
 import { getPDFReadableStream } from "../../pdf-tools.js"
-
+import json2csv from "json2csv"
 
 const { NotFound, Unauthorized, BadRequest } = httpErrors
 const { readJSON, writeJSON, writeFile, createReadStream } = fs
@@ -40,6 +40,24 @@ const writePosts = postsArray => fs.writeFileSync(postsJSONPath, JSON.stringify(
 
 
 
+
+// Download CSV FILE
+
+postsRouter.get("/postsCSV", (req, res, next) => {
+  try {
+    res.setHeader("Content-Disposition", "attachment; filename=blogposts.csv")
+    // SOURCE (readable stream on books.json) --> TRANSFORM (json into csv) --> DESTINATION (response)
+    const source = getBlogpostsJsonReadableStream()
+    const transform = new json2csv.Transform({ fields: ["author.name", "title", "category"] })
+    const destination = res
+    pipeline(source, transform, destination, err => {
+      if (err) console.log(err)
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 // DOWNLOAD PDF FILE
 
 postsRouter.get("/pdf", (req, res, next) => {
@@ -48,6 +66,7 @@ postsRouter.get("/pdf", (req, res, next) => {
   const source = getPDFReadableStream([
     {
       "category": 'horror',
+      "image" : "nope",
       "article": 'Once upon a time, there were a group of Italian friends who all loved pizza. They had grown up eating pizza with traditional toppings like pepperoni and mushrooms. One day, one of them decided to try something new and ordered a pizza with pineapple. The others were shocked and couldnt understand how anyone could possibly put something as sweet and juicy as pineapple on top of a pizza. They teased and mocked him for his strange choice. But the friend who had ordered the pineapple pizza didnt let their words get to him, he knew he had made a good choice.A week passed and all of the friends had gathered for a pizza night. The friend who had ordered the pineapple pizza decided to surprise them by ordering a pizza with pineapple for the group to share.At first, they all wrinkled their noses and were hesitant to try it. But once they did, they were all pleasantly surprised by how delicious it was! They all admitted that they had been wrong to judge the pineapple pizza so harshly.From then on, they all started to experiment with different pizza toppings, even trying ones that they never thought they would like. They realised that sometimes its good to take a chance and try something new.They nicknamed that pineapple pizza as  The Surprise pizzaThe end',
       "title": "Pinapplino!!",
       "cover": "https://media.timeout.com/images/105733042/750/422/image.jpg",
