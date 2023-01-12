@@ -1,0 +1,136 @@
+openapi: 3.0.1
+info:
+  title: Strive Blog API
+  description: We have great blogposts, must reads!
+  version: 1.0.1
+servers:
+  - url: http://localhost:3001
+    variables: {}
+    description: Local server
+  - url: http://localhost:3001
+    variables: {}
+    description: Cloud server
+tags:
+  - name: posts
+    description: Operations about blogposts
+  
+paths:
+  /blogposts:
+    get:
+      tags:
+        - posts
+      summary: Returns a list of blogposts.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: A list of blogposts
+          content:
+            application/json:
+              schema:
+                type: array
+                
+    post:
+      tags:
+        - posts
+      summary: Create a new post
+      description: Adds a new post
+      requestBody:
+        description: The body
+        content:
+          application/json:
+            
+      responses:
+        "201":
+          description: The ID of the newly created post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+     
+  /blogposts/{postId}:
+    get:
+      tags:
+        - posts
+      summary: Get by Id
+      description: Retrieve single post
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to retrieve
+      responses:
+        "200":
+          description: The single Post
+          content:
+            application/json:
+         
+    put:
+      tags:
+        - posts
+      description: Update an existing post
+      summary: Update
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to update
+      requestBody:
+        description: Fields to update
+        content:
+          application/json:
+       
+      responses:
+        "200":
+          description: A list of posts
+          content:
+            application/json:
+              schema:
+                type: array
+          
+    delete:
+      tags:
+        - posts
+      summary: Delete
+      description: Delete a specific post by ID
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to delete
+      responses:
+        "204":
+          description: Empty Response
+     
+  /blogposts/{postId}/comments:
+    post:
+      tags:
+        - posts
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Ok
+      
+  

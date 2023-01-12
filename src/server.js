@@ -5,6 +5,8 @@ import cors from "cors"
 import { join } from "path"
 import createHttpError from "http-errors"
 import postsRouter from "./api/blogposts/index.js"
+import swagger from "swagger-ui-express"
+import yaml from "yamljs"
 import {
     genericErrorHandler,
     notFoundHandler,
@@ -15,6 +17,8 @@ import {
 const server = express()
 
 const publicFolderPath = join(process.cwd(), "./public")
+const yamlFile = yaml.load(join(process.cwd(), "./src/docs/apiDocs.yml"))
+
 
 
 const port = process.env.PORT
@@ -69,6 +73,8 @@ server.use("/", loggerMiddleware, postsRouter) // All users related endpoints wi
  server.use(unauthorizedHandler) // 401
  server.use(notFoundHandler) // 404
  server.use(genericErrorHandler) // 500
+ server.use("/docs", swagger.serve, swagger.setup(yamlFile))
+
 // (the order of these error handlers does not really matters, expect for genericErrorHandler which needs to be the last in chain)
 
 server.listen(port, () => {
