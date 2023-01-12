@@ -22,6 +22,8 @@ import { pipeline } from "stream"
 import { createGzip } from "zlib"
 import { getPDFReadableStream } from "../../pdf-tools.js"
 import json2csv from "json2csv"
+import { sendRegistrationEmail } from "../../email-tools.js"
+
 
 const { NotFound, Unauthorized, BadRequest } = httpErrors
 const { readJSON, writeJSON, writeFile, createReadStream } = fs
@@ -39,6 +41,21 @@ const getPosts = () => JSON.parse(fs.readFileSync(postsJSONPath))
 const writePosts = postsArray => fs.writeFileSync(postsJSONPath, JSON.stringify(postsArray))
 
 
+
+// SEND EMAIL
+
+postsRouter.post("/register", async (req, res, next) => {
+  try {
+    // 1. Receive user's data in req.body
+    const { email } = req.body
+    // 2. Save new user in db
+    // 3. Send email to new user
+    await sendRegistrationEmail(email)
+    res.send()
+  } catch (error) {
+    next(error)
+  }
+})
 
 
 // Download CSV FILE
